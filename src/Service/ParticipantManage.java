@@ -45,7 +45,7 @@ public interface ParticipantManage {
 	/**
 	 ** 培训现场签到
 	 */
-	public int registrate(int trainingId, int participantId );
+	public int sign(int trainingId, int participantId );
 	
 	
 

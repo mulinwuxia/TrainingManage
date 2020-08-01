@@ -14,19 +14,19 @@ import java.util.Scanner;
 import Dao.CompanyDao;
 import Dao.GradeDao;
 import Dao.ParticipantDao;
-import Dao.RegistrateDao;
+import Dao.SignDao;
 import Dao.TrainingDao;
 import Dao.impl.ApplyDaoImpl;
 import Dao.impl.CompanyDaoImpl;
 import Dao.impl.GradeDaoImpl;
 import Dao.impl.ParticipantDaoImpl;
-import Dao.impl.RegistrateDaoImpl;
+import Dao.impl.SignDaoImpl;
 import Dao.impl.TrainingDaoImpl;
 import Entity.Administrator;
 import Entity.Company;
 import Entity.Grade;
 import Entity.Participant;
-import Entity.Registrate;
+import Entity.Sign;
 import Entity.Training;
 import ServiceImpl.AdministratorManageImpl;
 import ServiceImpl.ParticipantManageImpl;
@@ -168,7 +168,7 @@ public class Main {
 					} catch (AWTException e) {
 						e.printStackTrace();
 					}
-					Main.trainingRegistrate(participant);
+					Main.trainingSign(participant);
 					type = false;
 					break;
 				case 2:
@@ -255,7 +255,7 @@ public class Main {
 		
 	}
 	
-	private static void trainingRegistrate(Participant participant) {
+	private static void trainingSign(Participant participant) {
 
 		System.out.println("-------培训课程签到--------------");
 		
@@ -264,13 +264,13 @@ public class Main {
 		String Time=dateFormat.format(date);
 		
 		
-		List<Registrate> registrateList = new ArrayList<Registrate>();
-		String sql="SELECT registrate.`participantId`,registrate.`participantName`,registrate.`trainingId`,registrate.`registrateFlag`" + 
-				"FROM registrate JOIN training ON registrate.`trainingId`=training.`id`" + 
-				"WHERE registrate.`participantId`=? AND registrate.`registrateFlag`=0 AND training.`time`=? ";
+		List<Sign> registrateList = new ArrayList<Sign>();
+		String sql="SELECT sign.`participantId`,sign.`participantName`,sign.`trainingId`,sign.`signFlag`" + 
+				"FROM sign JOIN training ON sign.`trainingId`=training.`id`" + 
+				"WHERE sign.`participantId`=? AND sign.`signFlag`=0 AND training.`time`=? ";
 		String[] param = {String.valueOf(participant.getId()),Time};
-		RegistrateDao petDao = new RegistrateDaoImpl();
-		registrateList = petDao.selectRegistrates(sql, param);
+		SignDao petDao = new SignDaoImpl();
+		registrateList = petDao.selectSigns(sql, param);
 		
 		if(registrateList.isEmpty())
 		{
@@ -280,8 +280,8 @@ public class Main {
 		{
 			System.out.println("已经申请，且可以进行签到的培训课程：");
 			String sql1="SELECT DISTINCT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity`" + 
-					"FROM registrate JOIN training ON registrate.`trainingId`=training.`id`" + 
-					"WHERE registrate.`participantId`=? AND registrate.`registrateFlag`=0 AND training.`time`=?";
+					"FROM sign JOIN training ON sign.`trainingId`=training.`id`" + 
+					"WHERE sign.`participantId`=? AND sign.`signFlag`=0 AND training.`time`=?";
 			String [] param1= {String.valueOf(participant.getId()),Time};
 			List<Training> trainingList = new ArrayList<Training>();
 			TrainingDao trainingDao = new TrainingDaoImpl();
@@ -321,8 +321,8 @@ public class Main {
 					
 					}
 				}
-			ParticipantManageImpl participantRegistrate=new ParticipantManageImpl();
-			participantRegistrate.registrate(trainingId, participant.getId());
+			ParticipantManageImpl participantSign=new ParticipantManageImpl();
+			participantSign.sign(trainingId, participant.getId());
 		}
 		
 	}
@@ -331,23 +331,52 @@ public class Main {
 
 		System.out.println("-------申请参加培训课程--------------");
 		
+		//现在的时间
 		Date date = new Date();
 		SimpleDateFormat dateFormat= new SimpleDateFormat("yyyy-MM-dd");
 		String Time=dateFormat.format(date);
 		
+		//找到sign表中的time，根据每次培训三天的原则，计算出不能进行申请的时间，进而找出符合条件的培训
+		
 		List<Training> trainingList = new ArrayList<Training>();
-		String sql="SELECT * FROM training WHERE `time`>? AND `capacity`>0";
+		String sql="SELECT *\r\n" + 
+				"FROM training\r\n" + 
+				"WHERE training.`time` NOT IN (SELECT training.`time`\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 1 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 2 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`)\r\n" + 
+				"AND DATE_ADD( training.`time`, INTERVAL 1 DAY) NOT IN (SELECT training.`time`\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 1 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 2 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`)\r\n" + 
+				"AND  DATE_ADD( training.`time`, INTERVAL 2 DAY) NOT IN (SELECT training.`time`\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 1 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`\r\n" + 
+				"UNION\r\n" + 
+				"SELECT DATE_ADD( training.`time`, INTERVAL 2 DAY)\r\n" + 
+				"FROM SIGN JOIN training ON sign.`trainingId`=training.`id`)\r\n" + 
+				"AND training.`time` > ? AND training.`capacity`>0\r\n";
 		String[] param = {Time };
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
 		
 		if(trainingList.isEmpty())
 		{
-			System.out.println("所有培训课程的课容量都满了，或培训课程时间已经过了，不能申请参加此培训课程！");
+			System.out.println("所有培训课程的课容量都满了，或培训课程时间已经过了，或者已经申请，不能申请参加此培训课程！");
 		}
 		else
 		{
-			System.out.println("课容量未满，时间未过的培训课程：");
+			System.out.println("可以申请的培训课程：");
 			System.out.println("****************************************************");
 			System.out.println("培训课程编号\t"+"培训课程名称\t"+"培训课程时间\t"+"培训课程价格\t"+"培训公司编号\t");
 			for(int i=0;i<trainingList.size();i++)
@@ -419,6 +448,7 @@ public class Main {
 				double money = company.getMoney();
 				AdministratorManageImpl changeCompanyMoney = new AdministratorManageImpl();
 				changeCompanyMoney.setMoney(money+training.getPrice(),training.getCompanyId());
+				System.out.println("\n申请"+training.getTime()+"《"+training.getName()+"》成功！");
 			}
 			
 			
@@ -437,8 +467,8 @@ public class Main {
 		
 		List<Training> trainingList = new ArrayList<Training>();
 		String sql="SELECT DISTINCT training.`id`, training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity`" + 
-				"FROM training JOIN registrate ON training.`id`=registrate.`trainingId`" + 
-				"WHERE training.`time`>? AND registrate.`registrateFlag`=0";
+				"FROM training JOIN sign ON training.`id`=sign.`trainingId`" + 
+				"WHERE training.`time`>? AND sign.`signFlag`=0";
 		String[] param = {Time };
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -522,8 +552,8 @@ public class Main {
 		System.out.println("培训课程编号\t"+"培训课程名称\t"+"培训课程时间\t"+"培训公司编号\t");
 		List<Training> trainingList = new ArrayList<Training>();
 		String sql="SELECT DISTINCT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity`" + 
-				"FROM training JOIN registrate ON training.`id`=registrate.`trainingId`" + 
-				"WHERE registrate.`participantId`=? AND registrate.`registrateFlag`=1 ";
+				"FROM training JOIN sign ON training.`id`=sign.`trainingId`" + 
+				"WHERE sign.`participantId`=? AND sign.`signFlag`=1 ";
 		String[] param = {String.valueOf(participant.getId())};
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -542,8 +572,8 @@ public class Main {
 		
 		List<Training> trainingList = new ArrayList<Training>();
 		String sql="SELECT DISTINCT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity`" + 
-				"FROM training JOIN registrate ON training.`id`=registrate.`trainingId`" + 
-				"WHERE registrate.`participantId`=? AND registrate.`registrateFlag`=1 ";
+				"FROM training JOIN sign ON training.`id`=sign.`trainingId`" + 
+				"WHERE sign.`participantId`=? AND sign.`signFlag`=1 ";
 		String[] param = {String.valueOf(participant.getId())};
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -957,11 +987,11 @@ public class Main {
 		CompanyDao companyDao = new CompanyDaoImpl();
 		Company company = companyDao.getCompany(sql1, param1);		
 		
-		//将training表，grade表，registrate表结合，查询成绩为0，已签到的培训课程
+		//将training表，grade表，sign表结合，查询成绩为0，已签到的培训课程
 		List<Training> trainingList = new ArrayList<Training>();
-		String sql="SELECT DISTINCT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity` \r\n" + 
-				"FROM training JOIN grade ON training.`id`=grade.`trainingId` JOIN registrate ON registrate.`trainingId`=training.`id`\r\n" + 
-				"WHERE grade.`score` = 0 AND registrate.`registrateFlag` = 1 AND training.`companyId`=?";
+		String sql="SELECT DISTINCT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity` " + 
+				"FROM training JOIN grade ON training.`id`=grade.`trainingId` JOIN sign ON sign.`trainingId`=training.`id`" + 
+				"WHERE grade.`score` = 0 AND sign.`signFlag` = 1 AND training.`companyId`=?";
 		String[] param = {String.valueOf(administrator.getCompanyId())};
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -1155,22 +1185,22 @@ public class Main {
 			}
 			
 			//删除培训签到记录
-			String registrateSql=null;
-			registrateSql="delete from registrate where `trainingId`=?";
-			String [] registrateParam = {String.valueOf(trainingId)};
-			RegistrateDaoImpl registrateDao = new  RegistrateDaoImpl();
-			int updateRegistrate = registrateDao.executeSQL(registrateSql, registrateParam);
+			String signSql=null;
+			signSql="delete from sign where `trainingId`=?";
+			String [] signParam = {String.valueOf(trainingId)};
+			SignDaoImpl signDao = new  SignDaoImpl();
+			signDao.executeSQL(signSql, signParam);
 			
 			//删除培训课程成绩记录
 			String gradeSql=null;
 			gradeSql="delete from grade where `trainingId`=?";
 			String [] gradeParam = { String.valueOf(trainingId)};
 			GradeDaoImpl gradeDao = new GradeDaoImpl();
-			int updateGrade = gradeDao.executeSQL(gradeSql, gradeParam);
+			gradeDao.executeSQL(gradeSql, gradeParam);
 			
 			//培训公司删除培训
 			AdministratorManageImpl trainingDelete=new AdministratorManageImpl();
-			int flag=trainingDelete.deleteTraining(trainingId,company.getId());
+			trainingDelete.deleteTraining(trainingId,company.getId());
 		}
 		
 	}
@@ -1339,8 +1369,8 @@ public class Main {
 		
 		List<Participant> participantList=new ArrayList<Participant>();
 		String sql="SELECT DISTINCT participant.`id`,participant.`name`, participant.`password`,participant.`money`" + 
-				"FROM participant JOIN registrate ON participant.`id` = registrate.`participantId` JOIN training ON training.`id`=registrate.`trainingId`" + 
-				"WHERE training.`companyId`=? AND registrate.`registrateFlag` = 1";
+				"FROM participant JOIN sign ON participant.`id` = sign.`participantId` JOIN training ON training.`id`=sign.`trainingId`" + 
+				"WHERE training.`companyId`=? AND sign.`signFlag` = 1";
 		String[] param = {String.valueOf(company.getId())};
 		ParticipantDao petDao = new ParticipantDaoImpl();
 		participantList = petDao.selectParticipants(sql, param);

@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Dao.BaseDao;
-import Dao.RegistrateDao;
+import Dao.SignDao;
 import Entity.Apply;
-import Entity.Registrate;
+import Entity.Sign;
 
-public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
+public class SignDaoImpl extends BaseDao implements SignDao {
 	
 	private Connection conn = null; // 保存数据库连接
 
@@ -24,19 +24,19 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 	/**
 	 ** 查询所有培训参与者签到信息
 	 */
-	public List<Registrate> getAllRegistrate() {
-		List<Registrate> registrateList = new ArrayList<Registrate>();
+	public List<Sign> getAllSign() {
+		List<Sign> registrateList = new ArrayList<Sign>();
 		try {
-		String preparedSql = "select * from apply ";
+		String preparedSql = "select * from sign ";
 		conn = getConn(); // 得到数据库连接
 		pstmt = conn.prepareStatement(preparedSql); // 得到PreparedStatement对象
 		rs = pstmt.executeQuery(); // 执行SQL语句
 			while (rs.next()) {
-				Registrate registrate = new Registrate();
+				Sign registrate = new Sign();
 				registrate.setParticipantId(rs.getInt(1));
 				registrate.setParticipantName(rs.getString(2));
 				registrate.setTrainingId(rs.getInt(3));
-				registrate.setRegistrateFlag(rs.getInt(4));
+				registrate.setSignFlag(rs.getInt(4));
 				registrateList.add(registrate);
 			}
 		} catch (SQLException e) {
@@ -53,8 +53,8 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 	/**
 	 ** 根据已知培训参与者的信息查询培训参与者签到信息
 	 */
-	public Registrate selectRegistrate(String sql, String[] param) {
-		Registrate registrate = new Registrate();
+	public Sign selectSign(String sql, String[] param) {
+		Sign registrate = new Sign();
 		try {
 		conn = getConn(); // 得到数据库连接
 		pstmt = conn.prepareStatement(sql); // 得到PreparedStatement对象
@@ -68,7 +68,7 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 				registrate.setParticipantId(rs.getInt(1));
 				registrate.setParticipantName(rs.getString(2));
 				registrate.setTrainingId(rs.getInt(3));
-				registrate.setRegistrateFlag(rs.getInt(4));
+				registrate.setSignFlag(rs.getInt(4));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -84,9 +84,9 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 	/**
 	 ** 根据培训信息查询培训参与者签到信息
 	 */
-	public List<Registrate> selectRegistrates(String sql, String[] param) {
+	public List<Sign> selectSigns(String sql, String[] param) {
 		
-		List<Registrate> registrateList = new ArrayList<Registrate>();
+		List<Sign> registrateList = new ArrayList<Sign>();
 		
 		try {
 		conn = getConn(); // 得到数据库连接
@@ -98,11 +98,11 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 		}
 		rs = pstmt.executeQuery(); // 执行SQL语句
 			while (rs.next()) {
-				Registrate registrate = new Registrate();
+				Sign registrate = new Sign();
 				registrate.setParticipantId(rs.getInt(1));
 				registrate.setParticipantName(rs.getString(2));
 				registrate.setTrainingId(rs.getInt(3));
-				registrate.setRegistrateFlag(rs.getInt(4));
+				registrate.setSignFlag(rs.getInt(4));
 				registrateList.add(registrate);
 			}
 		} catch (SQLException e) {
@@ -119,7 +119,7 @@ public class RegistrateDaoImpl extends BaseDao implements RegistrateDao {
 	/**
 	 ** 更新培训参与者签到信息
 	 */
-	public int updateRegistrate(String sql, Object[] param) {
+	public int updateSign(String sql, Object[] param) {
 		int count = super.executeSQL(sql, param);
 		return count;
 	}

@@ -10,12 +10,12 @@ import Dao.TrainingDao;
 import Dao.impl.ApplyDaoImpl;
 import Dao.impl.GradeDaoImpl;
 import Dao.impl.ParticipantDaoImpl;
-import Dao.impl.RegistrateDaoImpl;
+import Dao.impl.SignDaoImpl;
 import Dao.impl.TrainingDaoImpl;
 import Entity.Apply;
 import Entity.Grade;
 import Entity.Participant;
-import Entity.Registrate;
+import Entity.Sign;
 import Entity.Training;
 import Service.ParticipantManage;
 
@@ -56,8 +56,8 @@ public class ParticipantManageImpl implements ParticipantManage {
 	public List<Training> getTrainings(int participantId) {
 		List<Training> trainingList = new ArrayList<Training>();
 		String sql = "SELECT training.`id`, training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity`" + 
-				"FROM registrate JOIN training ON registrate.`trainingId`=training.`id`" + 
-				"WHERE registrate.`participantId`=?";
+				"FROM sign JOIN training ON sign.`trainingId`=training.`id`" + 
+				"WHERE sign.`participantId`=?";
 		String[] param = { String.valueOf(participantId) };
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -122,29 +122,24 @@ public class ParticipantManageImpl implements ParticipantManage {
 			String [] param = {String.valueOf(participantId),participant.getName(),String.valueOf(trainingId)};
 			int updateApply = applyDao.executeSQL(applysql, param);
 			
-			if(updateApply>0)
-				System.out.println("申请成功！");
-			
-			
-			//将申请成功的培训添加到registrate表
-			String registrateSql=null;
-			registrateSql="insert into registrate(`participantId`,`participantName`,`trainingId`,`registrateFlag`) values(?,?,?,?)";
-			String [] registrateParam = {String.valueOf(participantId),participant.getName(),String.valueOf(trainingId),String.valueOf(0)};
-			RegistrateDaoImpl registrateDao = new  RegistrateDaoImpl();
-			int updateRegistrate = registrateDao.executeSQL(registrateSql, registrateParam);
+			//将申请成功的培训添加到sign表
+			String signSql=null;
+			signSql="insert into sign(`participantId`,`participantName`,`trainingId`,`signFlag`) values(?,?,?,?)";
+			String [] signParam = {String.valueOf(participantId),participant.getName(),String.valueOf(trainingId),String.valueOf(0)};
+			SignDaoImpl signDao = new  SignDaoImpl();
+			signDao.executeSQL(signSql, signParam);
 			
 			//将申请成功的培训添加到grade表
 			String gradeSql=null;
 			gradeSql="insert into grade(`participantId`,`participantName`,`trainingId`,`score`) values(?,?,?,?)";
 			String [] gradeParam = { String.valueOf(participantId),participant.getName(),String.valueOf(trainingId),String.valueOf(0)};
 			GradeDaoImpl gradeDao = new GradeDaoImpl();
-			int updateGrade = gradeDao.executeSQL(gradeSql, gradeParam);
+			gradeDao.executeSQL(gradeSql, gradeParam);
 		
 			return updateApply;
 		}
 		else
 		{
-			System.out.println("已申请，不能重新申请！");
 			return 0;
 		}
 	}
@@ -190,25 +185,24 @@ public class ParticipantManageImpl implements ParticipantManage {
 				System.out.println("取消成功！");
 			
 			
-			//在registrate表中删除
-			String registrateSql=null;
-			registrateSql="delete from registrate where `participantId`=? and `trainingId`=?";
-			String [] registrateParam = {String.valueOf(participantId),String.valueOf(trainingId)};
-			RegistrateDaoImpl registrateDao = new  RegistrateDaoImpl();
-			int updateRegistrate = registrateDao.executeSQL(registrateSql, registrateParam);
+			//在sign表中删除
+			String signSql=null;
+			signSql="delete from sign where `participantId`=? and `trainingId`=?";
+			String [] signParam = {String.valueOf(participantId),String.valueOf(trainingId)};
+			SignDaoImpl signDao = new  SignDaoImpl();
+			signDao.executeSQL(signSql, signParam);
 			
 			//在grade表中删除
 			String gradeSql=null;
 			gradeSql="delete from grade where `participantId`=? and `trainingId`=?";
 			String [] gradeParam = { String.valueOf(participantId),String.valueOf(trainingId)};
 			GradeDaoImpl gradeDao = new GradeDaoImpl();
-			int updateGrade = gradeDao.executeSQL(gradeSql, gradeParam);
+			gradeDao.executeSQL(gradeSql, gradeParam);
 			
 			return updateApply;		
 		}
 		else
 		{
-			System.out.println("没有申请，不能取消申请！");
 			return 0;
 		}
 	}
@@ -249,36 +243,36 @@ public class ParticipantManageImpl implements ParticipantManage {
 	/**
 	 ** 培训现场签到
 	 */
-	public int registrate(int trainingId, int participantId) {
+	public int sign(int trainingId, int participantId) {
 		
-		//在registrate表中查找是否存在，已申请但未签到的培训课程
-		String sql2 = "select * from registrate where  `participantId`=? and `trainingId`=? and `registrateFlag`=0";
+		//在sign表中查找是否存在，已申请但未签到的培训课程
+		String sql2 = "select * from sign where  `participantId`=? and `trainingId`=? and `signFlag`=0";
 		String[] param2 = {String.valueOf(participantId),String.valueOf(trainingId)};
-		RegistrateDaoImpl registrateDao = new RegistrateDaoImpl();
-		Registrate registrate=registrateDao.selectRegistrate(sql2, param2);
+		SignDaoImpl signDao = new SignDaoImpl();
+		Sign sign=signDao.selectSign(sql2, param2);
 		
-		if(registrate.getParticipantName()!=null)
+		if(sign.getParticipantName()!=null)
 		{
-			//更新registrate表的信息
+			//更新sign表的信息
 			String updatesql = null;
-			updatesql = "update registrate set `registrateFlag`=? where `participantId`=? and `trainingId`=?";
+			updatesql = "update sign set `signFlag`=? where `participantId`=? and `trainingId`=?";
 			Scanner input = new Scanner(System.in);
 			System.out.println("请输入1进行签到：");
-			int registrateFlag = input.nextInt();
+			int signFlag = input.nextInt();
 			do {
-				if(registrateFlag==1)
+				if(signFlag==1)
 					break;
 				else
 				{
 					System.out.println("输入错误，请输入1重新签到！");
-					registrateFlag = input.nextInt();
+					signFlag = input.nextInt();
 			
 				}
 				
-			}while(registrateFlag==1);
-			String[] param = {String.valueOf(registrateFlag),String.valueOf(participantId), String.valueOf(trainingId)};
-			int updateRegistrate = registrateDao.executeSQL(updatesql, param);
-			if(updateRegistrate>0)
+			}while(signFlag==1);
+			String[] param = {String.valueOf(signFlag),String.valueOf(participantId), String.valueOf(trainingId)};
+			int updateSign = signDao.executeSQL(updatesql, param);
+			if(updateSign>0)
 			{
 				System.out.println("签到成功！");
 			}
@@ -289,11 +283,11 @@ public class ParticipantManageImpl implements ParticipantManage {
 			ApplyDaoImpl applyDao = new ApplyDaoImpl();
 			applyDao.updateApply(deleteSql, deleteParam);
 			
-			return updateRegistrate;
+			return updateSign;
 		}
 		else
 		{
-			System.out.println("不存在此种已申请但未签到的培训课程！");
+			System.out.println("不存在此类已申请但未签到的培训课程！");
 			return 0;
 		}
 		

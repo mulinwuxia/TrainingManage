@@ -67,8 +67,8 @@ public class AdministratorManageImpl implements AdministratorManage {
 	public List<Training> getTrainings(String participantName, int companyId) {
 		List<Training> trainingList = new ArrayList<Training>();
 		String sql ="SELECT training.`id`,training.`name`,training.`companyId`,training.`time`,training.`price`,training.`capacity` "
-		           +"FROM registrate JOIN training ON registrate.`trainingId`=training.`id` "
-				   +"WHERE registrate.`participantName`=? AND training.`companyId`=? AND registrate.`registrateFlag`=1";
+		           +"FROM sign JOIN training ON sign.`trainingId`=training.`id` "
+				   +"WHERE sign.`participantName`=? AND training.`companyId`=? AND sign.`signFlag`=1";
 		String[] param = { participantName,String.valueOf(companyId)};
 		TrainingDao petDao = new TrainingDaoImpl();
 		trainingList = petDao.selectTrainings(sql, param);
@@ -82,8 +82,8 @@ public class AdministratorManageImpl implements AdministratorManage {
 	public List<Participant> getParticipants(int trainingId, int companyId) {
 		List<Participant> participantList = new ArrayList<Participant>();
 		String sql = "SELECT participant.`id`,participant.`name`,participant.`password`,participant.`money` "
-		             +"FROM  registrate JOIN participant ON registrate.`participantId`=participant.`id` JOIN training ON registrate.`trainingId`=training.`id` "
-				     +"WHERE training.`Id`=? AND training.`companyId`=? AND registrate.`registrateFlag`=1";
+		             +"FROM  sign JOIN participant ON sign.`participantId`=participant.`id` JOIN training ON sign.`trainingId`=training.`id` "
+				     +"WHERE training.`Id`=? AND training.`companyId`=? AND sign.`signFlag`=1";
 		String[] param = { String.valueOf(trainingId),String.valueOf(companyId)};
 		ParticipantDao petDao = new ParticipantDaoImpl();
 		participantList = petDao.selectParticipants(sql, param);

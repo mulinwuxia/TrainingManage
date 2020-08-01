@@ -2,26 +2,26 @@ package Dao;
 
 import java.util.List;
 
-import Entity.Registrate;
+import Entity.Sign;
 
-public interface RegistrateDao {
+public interface SignDao {
 	/**
 	 ** 查询所有培训参与者签到信息
 	 */
-	public  List<Registrate> getAllRegistrate();
+	public  List<Sign> getAllSign();
 
 	/**
 	 ** 根据已知培训参与者的信息查询培训参与者签到信息
 	 */
-	public  Registrate selectRegistrate(String sql, String[] param);
+	public  Sign selectSign(String sql, String[] param);
 	
 	/**
 	 ** 根据培训信息查询培训参与者签到信息
 	 */
-	public List<Registrate> selectRegistrates(String sql, String[] param);
+	public List<Sign> selectSigns(String sql, String[] param);
 
 	/**
 	 ** 更新培训参与者签到信息
 	 */
-	public  int updateRegistrate(String sql, Object[] param);
+	public  int updateSign(String sql, Object[] param);
 }
