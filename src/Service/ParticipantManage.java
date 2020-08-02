@@ -20,7 +20,7 @@ public interface ParticipantManage {
 	/**
 	 ** 查询培训成绩排名
 	 */
-	public List<Grade> getGradeRanking(int trainingId, int participantId);
+	public List<Grade> getGradeRanking(int trainingId,int companyId,int participantId);
 	
 	/**
 	 ** 申请参与某培训 
@@ -37,10 +37,7 @@ public interface ParticipantManage {
 	 */
 	public int setMoney(double money,int participantId);
 	
-	/**
-	 ** 查询培训成绩排名
-	 */
-	public List<Grade> getGradeRanking(int trainingId,int companyId,int participantId);
+	
 	
 	/**
 	 ** 培训现场签到

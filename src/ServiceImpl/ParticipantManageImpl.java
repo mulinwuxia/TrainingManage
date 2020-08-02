@@ -64,27 +64,6 @@ public class ParticipantManageImpl implements ParticipantManage {
 		return trainingList;
 	}
 
-	@Override
-	/**
-	 ** 查询培训成绩排名
-	 */
-	public List<Grade> getGradeRanking(int trainingId, int participantId) {
-		
-		String sql="SELECT grade.`participantId`,grade.`participantName`,grade.`trainingId`,grade.`score`" + 
-				"FROM grade JOIN training on grade.`trainingId`=training.`id`" + 
-				"WHERE training.`id`=? AND grade.`participantId`=?" + 
-				"ORDER BY grade.`score` DEC ";
-		
-		String [] param= {String.valueOf(trainingId),String.valueOf(participantId)};
-		
-		GradeDao gradeDao= new GradeDaoImpl();
-		List<Grade> gradeList = new ArrayList<Grade>();
-		
-		gradeList=gradeDao.selectGrades(sql, param);
-		
-		return gradeList;
-
-	}
 
 	@Override
 	/**
